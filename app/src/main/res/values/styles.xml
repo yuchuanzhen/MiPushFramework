@@ -48,4 +48,8 @@
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="android:textSize">16sp</item>
     </style>
+
+    <color name="bootstrap_brand_success">#5cb85c</color>
+    <color name="red">#ffff0000</color>
+
 </resources>

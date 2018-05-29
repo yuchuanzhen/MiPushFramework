@@ -52,7 +52,7 @@
 
     <string name="wizard_title_run_in_background">允许后台活动</string>
     <string name="wizard_descr_run_in_background">您禁用了推送服务的后台运行权限，它将无法后台推送，您%1$s，然后点按下一步。</string>
-    
+
     <string name="run_in_background_appops_root">需要使用 Root 解除禁用（我们会自动处理它）</string>
     <string name="run_in_background_rikka_appops"><![CDATA[
 需要打开 <b>App Ops</b> 工具，并授予 <b>在后台运行或被唤醒</b> 权限
@@ -109,7 +109,7 @@
     <string name="permission_allow_receive">接收通知栏消息</string>
     <string name="permission_allow_receive_command">接收命令</string>
     <string name="permission_allow_receive_register_result">回掉注册结果（暂时无效）</string>
-    
+
     <string name="permission_register_type">注册方式</string>
     <string name="register_type_allow">允许，自动注册</string>
     <string name="register_type_deny">阻止注册</string>
@@ -155,7 +155,11 @@
     <string name="settings_get_log_summary">点按分享日志，请在需要的时候随 Issues 一起提交。</string>
     <string name="settings_clear_log">清空日志</string>
     <string name="settings_activity_keep_alive">后台服务保活</string>
-    <string name="settings_summary_keep_alive">很多ROM(比如一加)有自己的后台清理逻辑，但是可以通过应用切换界面锁定功能设置白名单。
+
+    <string name="settings_activity_xposed_blacklist">xposed增强功能黑名单</string>
+    <string name="settings_activity_xposed_blacklist_summary">配置不需要模拟型号的应用</string>
+
+    <string name="settings_summary_keep_alive">很多ROM(比如一加)有后台清理逻辑，但是可以通过应用切换界面锁定功能设置白名单。
     点击之后，请在应用切换界面找到刚刚打开的后台服务保活界面并锁定。[注意]手机每次重启之后需要点击这里开启保活界面。
     </string>
 
@@ -207,4 +211,8 @@
     <b>权限不足通常是由于升级所致，请重再一次安装manager APP，注意不要清空数据。
     寻找当前版本安装包 <a href="%1$s">点击这里</a> </b>
     ]]></string>
+
+    <string name="xposed_not_working">Xposed模块不在工作状态，请检查</string>
+    <string name="restart_required">配置完成，需要重启生效</string>
+
 </resources>

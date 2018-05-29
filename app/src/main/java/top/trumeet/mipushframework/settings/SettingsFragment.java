@@ -11,6 +11,7 @@ import top.trumeet.common.Constants;
 import top.trumeet.common.push.PushServiceAccessibility;
 import top.trumeet.mipush.R;
 import top.trumeet.mipushframework.MainActivity;
+import top.trumeet.mipushframework.xposed.activity.XposedAppListActivity;
 
 /**
  * Created by Trumeet on 2017/8/27.
@@ -60,6 +61,16 @@ public class SettingsFragment extends PreferenceFragment {
                 Intent intent = new Intent().setComponent(new ComponentName(Constants.SERVICE_APP_NAME,
                         Constants.KEEPLIVE_COMPONENT_NAME));
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                return true;
+            }
+        });
+
+
+       setPreferenceOnclick("activity_xposed", new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent().setComponent(new ComponentName(getContext() ,XposedAppListActivity.class));
                 startActivity(intent);
                 return true;
             }

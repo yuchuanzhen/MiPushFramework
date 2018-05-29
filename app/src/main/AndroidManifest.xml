@@ -1,54 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="top.trumeet.mipush"  >
+    package="top.trumeet.mipush">
 
     <uses-permission android:name="top.trumeet.mipush.permissions.GET_VERSION" />
-
     <uses-permission android:name="top.trumeet.mipush.permissions.READ_SETTINGS" />
     <uses-permission android:name="top.trumeet.mipush.permissions.WRITE_SETTINGS" />
     <uses-permission android:name="top.trumeet.mipush.permissions.BIND" />
 
-    <application android:theme="@style/AppTheme"
-        android:label="@string/app_name"
+    <application
+        android:name="top.trumeet.mipushframework.MiPushFramework"
         android:icon="@mipmap/ic_app"
-        android:name="top.trumeet.mipushframework.MiPushFramework">
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="小米推送框架增强模块" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="53" />
 
-        <activity android:name="top.trumeet.mipushframework.wizard.WelcomeActivity"
-            android:theme="@style/AppTheme.Wizard"
-            android:icon="@mipmap/ic_launcher">
+
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.WelcomeActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:theme="@style/AppTheme.Wizard">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="top.trumeet.mipushframework.wizard.CheckRunningStatusActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.CheckRunningStatusActivity"
             android:theme="@style/AppTheme.Wizard" />
-        <activity android:name="top.trumeet.mipushframework.wizard.StartFailFAQActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.StartFailFAQActivity"
             android:theme="@style/AppTheme.Wizard" />
-        <activity android:name="top.trumeet.mipushframework.wizard.CheckRunInBackgroundActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.CheckRunInBackgroundActivity"
             android:theme="@style/AppTheme.Wizard" />
-        <activity android:name="top.trumeet.mipushframework.wizard.CheckDozeActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.CheckDozeActivity"
             android:theme="@style/AppTheme.Wizard" />
-        <activity android:name="top.trumeet.mipushframework.wizard.fake.FakeBuildActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.fake.FakeBuildActivity"
             android:theme="@style/AppTheme.Wizard" />
-        <activity android:name="top.trumeet.mipushframework.wizard.FinishWizardActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.FinishWizardActivity"
             android:theme="@style/AppTheme.Wizard" />
-        <activity android:name="top.trumeet.mipushframework.wizard.UsageStatsPermissionActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.wizard.UsageStatsPermissionActivity"
             android:theme="@style/AppTheme.Wizard" />
-
-        <activity android:name="top.trumeet.mipushframework.settings.MainActivity"
-            android:label="@string/preference_title"
-            android:configChanges="screenLayout|screenSize|orientation"/>
-
-        <activity android:name="top.trumeet.mipushframework.permissions.ManagePermissionsActivity"
-            android:label="@string/action_edit_permission"
-            android:configChanges="screenLayout|screenSize|orientation"/>
-
-
-        <activity android:name="top.trumeet.mipushframework.event.RecentActivityActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.settings.MainActivity"
+            android:configChanges="screenLayout|screenSize|orientation"
+            android:label="@string/preference_title" />
+        <activity
+            android:name="top.trumeet.mipushframework.permissions.ManagePermissionsActivity"
+            android:configChanges="screenLayout|screenSize|orientation"
+            android:label="@string/action_edit_permission" />
+        <activity
+            android:name="top.trumeet.mipushframework.event.RecentActivityActivity"
             android:label="@string/recent_activity_title" />
-
-        <activity android:name="top.trumeet.mipushframework.help.HelpActivity"
+        <activity
+            android:name="top.trumeet.mipushframework.help.HelpActivity"
             android:label="@string/helplib_title"
             android:theme="@style/HelpTheme.DayNight" />
 
@@ -56,10 +74,19 @@
             android:name="io.fabric.ApiKey"
             android:value="${fabricKey}" />
 
-
         <provider
             android:name="top.trumeet.mipushframework.preferences.MiPushAppPreferenceProvider"
             android:authorities="top.trumeet.mipushframework.preferences"
-            android:exported="true"/>
+            android:exported="true" />
+
+        <provider
+            android:name="top.trumeet.mipushframework.xposed.provider.XposedPreferenceProvider"
+            android:authorities="top.trumeet.mipushframework.xposed_preferences"
+            android:exported="true" />
+
+        <activity
+            android:name="top.trumeet.mipushframework.xposed.activity.XposedAppListActivity"
+            android:theme="@style/AppTheme" />
     </application>
+
 </manifest>

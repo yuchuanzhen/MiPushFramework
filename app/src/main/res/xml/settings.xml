@@ -64,11 +64,16 @@
     <PreferenceCategory
         android:title="@string/settings_enhance">
 
-
         <Preference
             android:key="activity_keep_alive"
             android:title="@string/settings_activity_keep_alive"
             android:summary="@string/settings_summary_keep_alive"/>
+
+        <Preference
+            android:key="activity_xposed"
+            android:summary="@string/settings_activity_xposed_blacklist_summary"
+            android:title="@string/settings_activity_xposed_blacklist" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

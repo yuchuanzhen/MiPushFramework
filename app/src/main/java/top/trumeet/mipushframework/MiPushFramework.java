@@ -19,6 +19,7 @@ public class MiPushFramework extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        MiPushFramework.instance = this;
         if (!BuildConfig.DEBUG) {
             final Fabric fabric = new Fabric.Builder(this)
                     .kits(new Crashlytics())
@@ -39,5 +40,16 @@ public class MiPushFramework extends Application {
     @Override
     public void onTerminate() {
         super.onTerminate();
+    }
+
+
+    private static MiPushFramework instance = null;
+
+    public synchronized static MiPushFramework getInstance() {
+        return instance;
+    }
+
+    public boolean isXposedWork() {
+        return false;
     }
 }
