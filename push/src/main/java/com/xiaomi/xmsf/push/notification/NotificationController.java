@@ -17,10 +17,12 @@ import com.xiaomi.xmsf.utils.ConfigCenter;
 
 import java.util.ArrayList;
 
+import me.pqpo.librarylog4a.Log4a;
 import top.trumeet.common.cache.ApplicationNameCache;
 import top.trumeet.common.utils.NotificationUtils;
 
 import static com.xiaomi.push.service.MyMIPushNotificationHelper.createColorSubtext;
+import static com.xiaomi.xmsf.push.notification.RecentNotificationCache.getNotificationItem;
 import static top.trumeet.common.utils.NotificationUtils.getChannelIdByPkg;
 import static top.trumeet.common.utils.NotificationUtils.getGroupIdByPkg;
 
@@ -31,6 +33,7 @@ import static top.trumeet.common.utils.NotificationUtils.getGroupIdByPkg;
 
 public class NotificationController {
     private static final String ID_GROUP_APPLICATIONS = "applications";
+    private static final String TAG = NotificationController.class.getSimpleName();
 
     @TargetApi(26)
     public static void deleteOldNotificationChannelGroup(@NonNull Context context) {
@@ -154,6 +157,22 @@ public class NotificationController {
         }
 
         Notification notification = localBuilder.build();
+
+        NotificationItem item = getNotificationItem("", notification);
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        boolean notified = RecentNotificationCache.getInstance().hasNotified(item);
+        Log4a.i(TAG, String.format("hasNotified %b  NotificationItem %s ", notified, item));
+        if (notified) {
+            return;
+        }
+
+        RecentNotificationCache.getInstance().put(item);
         manager.notify(id, notification);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
