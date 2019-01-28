@@ -14,20 +14,24 @@ import android.os.Looper;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.crossbowffs.remotepreferences.RemotePreferences;
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
+import com.elvishew.xlog.Logger;
+import com.elvishew.xlog.XLog;
 import com.oasisfeng.condom.CondomContext;
 import com.xiaomi.smack.packet.Message;
 import com.xiaomi.xmpush.thrift.ActionType;
 import com.xiaomi.xmpush.thrift.PushMetaInfo;
+import com.xiaomi.xmsf.BuildConfig;
 import com.xiaomi.xmsf.R;
 import com.xiaomi.xmsf.push.control.XMOutbound;
-import com.xiaomi.xmsf.utils.ConfigCenter;
 
 import org.apache.thrift.TBase;
 
-import me.pqpo.librarylog4a.Log4a;
-import top.trumeet.common.utils.PreferencesUtils;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import static com.xiaomi.xmsf.BuildConfig.DEBUG;
 import static top.trumeet.common.Constants.TAG_CONDOM;
 
 /**
@@ -80,6 +84,7 @@ import static top.trumeet.common.Constants.TAG_CONDOM;
 
 public class PushServiceMain extends XMPushService {
     private static final String TAG = "PushService";
+    private Logger logger = XLog.tag(TAG).build();
 
     public static final String CHANNEL_STATUS = "status";
     public static final int NOTIFICATION_ALIVE_ID = 0;
@@ -87,16 +92,53 @@ public class PushServiceMain extends XMPushService {
     private SettingsObserver mSettingsObserver;
     private SharedPreferences.OnSharedPreferenceChangeListener mListener;
 
+    private Timer mStatTimer;
+    private long startTime;
+    private int nextUploadDuringMinutes = 20; // First 20, next 40, then 80... no longer than 6 hours (3600)
+    private boolean skipFirstStartTimerTask = true; // Skip first run
+
+    private void scheduleNextUpload () {
+        if (mStatTimer != null) mStatTimer.cancel();
+        skipFirstStartTimerTask = true;
+        mStatTimer = null;
+        mStatTimer = new Timer();
+        mStatTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (skipFirstStartTimerTask) {
+                    skipFirstStartTimerTask = false;
+                    return;
+                }
+                nextUploadDuringMinutes = nextUploadDuringMinutes * 2;
+                if (nextUploadDuringMinutes > 3600) {
+                    nextUploadDuringMinutes = 3600;
+                }
+                // Report and log stable users
+                long minute = (System.currentTimeMillis() - startTime) / (60 * 1000);
+                logger.d("Recording stable running period:" + minute + ", next upload is " + nextUploadDuringMinutes +
+                        " minutes later.");
+               Answers.getInstance()
+                       .logCustom(new CustomEvent("XMPush_stable_running")
+                       .putCustomAttribute("running_time_min", minute));
+                // Schedule next running and skip next "first" running
+                scheduleNextUpload();
+            }
+        }, 0, nextUploadDuringMinutes * 1000 * 60);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        logger.d("Service started");
+        startTime = System.currentTimeMillis();
+        if (!DEBUG && !BuildConfig.FABRIC_KEY.equals("null"))
+            scheduleNextUpload();
         mSettingsObserver = new SettingsObserver(new Handler(Looper.myLooper()));
-        mListener = PreferencesUtils.subscribe((RemotePreferences)PreferencesUtils.getPreferences(this), mSettingsObserver);
     }
 
     @Override
     public void attachBaseContext(Context base) {
-        Log4a.d(TAG, "attachBaseContext");
+        logger.d("attachBaseContext");
         super.attachBaseContext(CondomContext.wrap(base, TAG_CONDOM, XMOutbound.create(base,
                 TAG)));
     }
@@ -116,10 +158,10 @@ public class PushServiceMain extends XMPushService {
 
     @Override
     public void onDestroy() {
-        // getContentResolver().unregisterContentObserver(mSettingsObserver);
-        PreferencesUtils.unsubscribe((RemotePreferences) PreferencesUtils.getPreferences(this), mListener);
+        logger.d("Service stopped");
         ((NotificationManager) getSystemService(NOTIFICATION_SERVICE))
                 .cancel(NOTIFICATION_ALIVE_ID);
+        mStatTimer.cancel();
         super.onDestroy();
     }
 
@@ -131,21 +173,21 @@ public class PushServiceMain extends XMPushService {
         @Override
         public void onChange(boolean selfChange) {
             Log.i("SettingsObserver", "-> settings changed");
-            ConfigCenter.reloadConf(PushServiceMain.this);
             onConfigChanged();
         }
     }
 
     private void onConfigChanged () {
         NotificationManager manager = (NotificationManager)
-                getSystemService(NOTIFICATION_SERVICE);
+                getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_STATUS,
                     getString(R.string.notification_category_alive),
                     NotificationManager.IMPORTANCE_MIN);
             manager.createNotificationChannel(channel);
         }
-        if (ConfigCenter.getInstance().foregroundNotification || Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //if (ConfigCenter.getInstance().foregroundNotification || Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        {
             Notification notification = new NotificationCompat.Builder(this,
                     CHANNEL_STATUS)
                     .setContentTitle(getString(R.string.notification_alive))

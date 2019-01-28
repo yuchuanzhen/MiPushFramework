@@ -6,15 +6,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.graphics.ColorUtils;
 import android.text.TextUtils;
 
+import com.elvishew.xlog.Logger;
+import com.elvishew.xlog.XLog;
 import com.xiaomi.channel.commonutils.logger.MyLog;
 import com.xiaomi.channel.commonutils.reflect.JavaCalls;
 import com.xiaomi.xmpush.thrift.PushMetaInfo;
@@ -22,18 +20,12 @@ import com.xiaomi.xmpush.thrift.XmPushActionContainer;
 import com.xiaomi.xmsf.BuildConfig;
 import com.xiaomi.xmsf.R;
 import com.xiaomi.xmsf.push.notification.NotificationController;
-import com.xiaomi.xmsf.utils.ColorUtil;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 
-import me.pqpo.librarylog4a.Log4a;
-import top.trumeet.common.cache.ApplicationNameCache;
-import top.trumeet.common.cache.IconCache;
-
-import static com.xiaomi.push.service.MIPushNotificationHelper.drawableToBitmap;
 import static com.xiaomi.push.service.MIPushNotificationHelper.isBusinessMessage;
 
 /**
@@ -42,18 +34,16 @@ import static com.xiaomi.push.service.MIPushNotificationHelper.isBusinessMessage
  */
 
 public class MyMIPushNotificationHelper {
-    private static final String NOTIFICATION_ICON = "mipush_notification";
-    private static final String NOTIFICATION_SMALL_ICON = "mipush_small_notification";
+    private static Logger logger = XLog.tag("MyNotificationHelper").build();
 
     private static final int NOTIFICATION_BIG_STYLE_MIN_LEN = 25;
-
-    private static final String TAG = "MyNotificationHelper";
 
     /**
      * @see MIPushNotificationHelper#notifyPushMessage
      */
     static void notifyPushMessage(XMPushService var0, XmPushActionContainer buildContainer, byte[] var1, long var2) {
         PushMetaInfo metaInfo = buildContainer.getMetaInfo();
+        String packageName = buildContainer.getPackageName();
 
         String title = metaInfo.getTitle();
         String description = metaInfo.getDescription();
@@ -62,7 +52,7 @@ public class MyMIPushNotificationHelper {
 
         Notification.Builder localBuilder = new Notification.Builder(var0);
 
-        Log4a.i(TAG, "title:" + title + "  description:" + description);
+        logger.i("title:" + title + "  description:" + description);
 
         if (description.length() > NOTIFICATION_BIG_STYLE_MIN_LEN) {
             Notification.BigTextStyle style = new Notification.BigTextStyle();
@@ -72,37 +62,9 @@ public class MyMIPushNotificationHelper {
             localBuilder.setStyle(style);
         }
 
-        Bitmap iconBitmap = IconCache.getInstance().getRawIconBitmap(var0, buildContainer.getPackageName());
 
         // Set small icon
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            int iconLargeId = getIconId(var0, buildContainer.getPackageName(), NOTIFICATION_ICON);
-            int iconSmallId = getIconId(var0, buildContainer.getPackageName(), NOTIFICATION_SMALL_ICON);
-            Log4a.d(TAG, "id: " + iconLargeId + ", id2: " + iconSmallId);
-
-            if (iconLargeId <= 0) {
-                if (iconBitmap != null) {
-                    localBuilder.setLargeIcon(iconBitmap);
-                }
-            } else {
-                localBuilder.setLargeIcon(getBitmapFromId(var0, iconLargeId));
-            }
-
-            if (iconSmallId <= 0) {
-
-                Bitmap whiteIconBitmap = IconCache.getInstance().getWhiteIconBitmap(var0, buildContainer.getPackageName());
-                if (whiteIconBitmap != null) {
-                    localBuilder.setSmallIcon(Icon.createWithBitmap(whiteIconBitmap));
-                } else {
-                    localBuilder.setSmallIcon(R.drawable.ic_notifications_black_24dp);
-                }
-
-            } else {
-                localBuilder.setSmallIcon(Icon.createWithResource(buildContainer.getPackageName(), iconSmallId));
-            }
-        } else {
-            localBuilder.setSmallIcon(R.drawable.ic_notifications_black_24dp);
-        }
+        NotificationController.processSmallIcon(var0, packageName, localBuilder);
 
         PendingIntent localPendingIntent = getClickedPendingIntent(var0, buildContainer, metaInfo, var1);
         if (localPendingIntent != null) {
@@ -117,7 +79,7 @@ public class MyMIPushNotificationHelper {
 //                    localBuilder.setCustomContentView(localRemoteViews);
 //                }
 //            } catch (Exception e) {
-//                Log4a.e(TAG, e.getLocalizedMessage(), e);
+//                logger.e(e.getLocalizedMessage(), e);
 //            }
 
             if (BuildConfig.DEBUG) {
@@ -133,7 +95,7 @@ public class MyMIPushNotificationHelper {
                     localBuilder.addAction(new Notification.Action(i, "Jump", pendingIntentJump));
                 }
 
-                Intent sdkIntentJump = getSdkIntent(var0, buildContainer.getPackageName(), buildContainer);
+                Intent sdkIntentJump = getSdkIntent(var0, packageName, buildContainer);
                 if (sdkIntentJump != null) {
                     PendingIntent pendingIntent = PendingIntent.getActivity(var0, 0, sdkIntentJump, PendingIntent.FLAG_UPDATE_CURRENT);
                     localBuilder.addAction(new Notification.Action(i, "SDK Intent", pendingIntent));
@@ -150,44 +112,16 @@ public class MyMIPushNotificationHelper {
         localBuilder.setContentText(titleAndDesp[1]);
 
 
-        //for VERSION < Oero
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            localBuilder.setDefaults(Notification.DEFAULT_ALL);
-            localBuilder.setPriority(Notification.PRIORITY_HIGH);
-        }
-
         // Fill app name
         Bundle extras = new Bundle();
-        CharSequence appName = ApplicationNameCache.getInstance().getAppName(var0, buildContainer.getPackageName());
 
-        if (iconBitmap != null && !TextUtils.isEmpty(appName)) {
-            int color = getIconColor(iconBitmap);
-            CharSequence subText = ColorUtil.createColorSubtext(appName, color);
-            if (subText != null) {
-                extras.putCharSequence(NotificationCompat.EXTRA_SUB_TEXT, subText);
-            }
-            localBuilder.setColor(color);
-        }
+        NotificationController.buildExtraSubText(var0, packageName, localBuilder, extras);
 
         localBuilder.setExtras(extras);
 
-        NotificationController.publish(var0, id, buildContainer.getPackageName(), localBuilder);
+        NotificationController.publish(var0, id, packageName, localBuilder);
 
     }
-
-    private static int getIconColor(Bitmap bitmap) {
-        int color = ColorUtil.getIconColor(bitmap);
-        if (color != Notification.COLOR_DEFAULT) {
-            final float[] hsl = new float[3];
-            ColorUtils.colorToHSL(color, hsl);
-            hsl[1] = 0.94f;
-            hsl[2] = Math.min(hsl[2] * 0.6f, 0.31f);
-            return ColorUtils.HSLToColor(hsl);
-        }
-        return color;
-    }
-
-
 
     private static PendingIntent openActivityPendingIntent(Context paramContext, XmPushActionContainer paramXmPushActionContainer, PushMetaInfo paramPushMetaInfo, byte[] paramArrayOfByte) {
         String packageName = paramXmPushActionContainer.getPackageName();
@@ -389,17 +323,9 @@ public class MyMIPushNotificationHelper {
         try {
             return JavaCalls.callStaticMethodOrThrow(MIPushNotificationHelper.class, "determineTitleAndDespByDIP", paramContext, paramPushMetaInfo);
         } catch (Exception e) {
-            Log4a.e(TAG, e.getMessage(), e);
+            logger.e(e.getMessage(), e);
             return new String[]{paramPushMetaInfo.getTitle(), paramPushMetaInfo.getDescription()};
         }
-    }
-
-    private static Bitmap getBitmapFromId(Context context, int i) {
-        return drawableToBitmap(context.getResources().getDrawable(i));
-    }
-
-    private static int getIconId(Context context, String str, String str2) {
-        return context.getResources().getIdentifier(str2, "drawable", str);
     }
 
 

@@ -73,6 +73,7 @@ public final class Constants {
     /**
      * Use in wizard, finish activity when user click NEXT,
      * not go next page.
+     * TODO: I18n for this button. Use "Finish" label is better.
      */
     public static final String EXTRA_FINISH_ON_NEXT = "top.trumeet.xmsf.EXTRA_FINISH_ON_NEXT";
 
@@ -86,6 +87,8 @@ public final class Constants {
 
     public static final String SERVICE_APP_NAME = "com.xiaomi.xmsf";
 
+    public static final String MANAGER_APP_NAME = "top.trumeet.mipush";
+
     public static final int PUSH_SERVICE_VERSION_CODE = Integer.parseInt(BuildConfig.PUSH_VERSION_CODE);
 
     /**
@@ -96,9 +99,6 @@ public final class Constants {
 
     public static final String SHARE_LOG_COMPONENT_NAME =
             SERVICE_APP_NAME + ".ShareLogActivity";
-
-    public static final String CLEAR_LOG_COMPONENT_NAME =
-            SERVICE_APP_NAME + ".ClearLogActivity";
 
     public static final String KEEPLIVE_COMPONENT_NAME =
             SERVICE_APP_NAME + ".EmptyActivity";
@@ -116,5 +116,7 @@ public final class Constants {
         public static final String GET_VERSION = "top.trumeet.mipush.permissions.GET_VERSION";
     }
 
-    public static final String AUTHORITIES_PUSH_API = "moe.yuuta.mipush.push.api.PushServiceAPI";
+    public static final String FAKE_CONFIGURATION_PATH = "/data/misc/riru/modules/mipush_fake/packages/";
+    public static final String FAKE_CONFIGURATION_NAME_TEMPLATE = FAKE_CONFIGURATION_PATH + "%1$s.%2$s";
+    public static final String FAKE_CONFIGURATION_GLOBAL = Constants.FAKE_CONFIGURATION_PATH + "ALL";
 }

@@ -1,7 +1,7 @@
 package com.xiaomi.xmsf;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 
 /**
  * @author zts
@@ -13,8 +13,10 @@ public class EmptyActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_empty);
+    }
 
-        moveTaskToBack(false);
+    public static class OnePlus extends EmptyActivity {
+
     }
 
 }

@@ -2,52 +2,47 @@ package com.xiaomi.xmsf.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.widget.Toast;
 
-import com.xiaomi.xmsf.R;
+import com.xiaomi.xmsf.BuildConfig;
 
-import me.pqpo.librarylog4a.Log4a;
-import top.trumeet.common.utils.PreferencesUtils;
 
 /**
+ * Push 配置
  * @author zts
  */
 public class ConfigCenter {
-    private static final String TAG = ConfigCenter.class.getSimpleName();
 
+    private static class LazyHolder {
+        volatile static ConfigCenter INSTANCE = new ConfigCenter();
+    }
 
-    private static volatile ConfigCenter conf = new ConfigCenter();
 
     public static ConfigCenter getInstance() {
-        return conf;
+        return LazyHolder.INSTANCE;
     }
 
-    public static boolean reloadConf(Context ctx) {
-        ConfigCenter tmp = new ConfigCenter();
-
-        try {
-
-            SharedPreferences prefs = PreferencesUtils.getPreferences(ctx);
-            tmp.autoRegister = prefs.getBoolean(PreferencesUtils.AUTO_REGISTER, tmp.autoRegister);
-            tmp.foregroundNotification = prefs.getBoolean(PreferencesUtils.KEY_FOREGROUND_NOTIFICATION, tmp.foregroundNotification);
-
-            {
-                String mode = prefs.getString(PreferencesUtils.KEY_ACCESS_MODE, "0");
-                tmp.accessMode = Integer.valueOf(mode);
-            }
-
-            conf = tmp;
-            return true;
-        } catch (RuntimeException e) {
-            Log4a.e(TAG, e);
-            Toast.makeText(ctx, ctx.getString(R.string.log_push_err)  + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-            return false;
-        }
+    private ConfigCenter() {
     }
 
-    public boolean autoRegister = true;
-    public boolean foregroundNotification = true;
+    //using MODE_MULTI_PROCESS emmm.....
+    private SharedPreferences getSharedPreferences(Context context) {
+        return context.getSharedPreferences(BuildConfig.APPLICATION_ID + "_preferences", Context.MODE_MULTI_PROCESS);
+    }
 
-    public int accessMode = 0;
+    public boolean isNotificationOnRegister(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean("NotificationOnRegister", false);
+    }
 
+    public boolean isAutoRegister(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean("AutoRegister", false);
+    }
+
+    public int getAccessMode(Context ctx) {
+        String mode = getSharedPreferences(ctx).getString("AccessMode", "0");
+        return Integer.valueOf(mode);
+    }
+
+    public boolean isIceboxSupported(Context ctx) {
+        return getSharedPreferences(ctx).getBoolean("IceboxSupported", false);
+    }
 }
